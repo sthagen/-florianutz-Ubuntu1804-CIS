@@ -133,11 +133,24 @@ ubuntu1804cis_time_synchronization: chrony
 ubuntu1804cis_time_Synchronization: ntp
 
 ubuntu1804cis_time_synchronization_servers:
-    - 0.pool.ntp.org
-    - 1.pool.ntp.org
-    - 2.pool.ntp.org
-    - 3.pool.ntp.org  
+  - uri: "0.pool.ntp.org"
+    config: "minpoll 8"
+  - uri: "1.pool.ntp.org"
+    config: "minpoll 8"
+  - uri: "2.pool.ntp.org"
+    config: "minpoll 8"
+  - uri: "3.pool.ntp.org"
+    config: "minpoll 8"
 ```  
+##### 1.4.3 | PATCH | Ensure authentication required for single user mode
+It is disabled by default as it is setting random password for root. To enable it set:
+```yaml
+ubuntu1804cis_rule_1_4_3: true
+```
+To use other than random password:
+```yaml
+ubuntu1804cis_root_password: 'new password'
+```
 
 ##### 3.4.2 | PATCH | Ensure /etc/hosts.allow is configured
 ```
@@ -152,11 +165,26 @@ ubuntu1804cis_firewall: firewalld
 ubuntu1804cis_firewall: iptables
 ```
 
+##### 5.3.1 | PATCH | Ensure password creation requirements are configured
+```
+ubuntu1804cis_pwquality:
+  - key: 'minlen'
+    value: '14'
+  - key: 'dcredit'
+    value: '-1'
+  - key: 'ucredit'
+    value: '-1'
+  - key: 'ocredit'
+    value: '-1'
+  - key: 'lcredit'
+    value: '-1'
+```
+
 
 Dependencies
 ------------
 
-Ansible > 2.2
+Ansible >= 2.4 and <= 2.7 (2.8 is not yet supported)
 
 Example Playbook
 -------------------------
@@ -168,6 +196,15 @@ Example Playbook
 
   roles:
     - Ubuntu1804-CIS
+```
+
+To run the tasks in this repository, first create this file one level above the repository
+(i.e. the playbook .yml and the directory `Ubuntu1804-CIS` should be next to each other),
+then review the file `defaults/main.yml` and disable any rule/section you do not wish to execute.
+
+Assuming you named the file `site.yml`, run it with:
+```bash
+ansible-playbook site.yml
 ```
 
 Tags
