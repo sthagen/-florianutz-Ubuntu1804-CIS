@@ -18,3 +18,8 @@ tests/*.retry
 pip-selfcheck.json
 /share/
 molecule/default/cache
+/venv/
+.venv
+*.bak*
+*.cache
+__pycache__

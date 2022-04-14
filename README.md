@@ -20,7 +20,7 @@ With this in the file requirements.yml:
 - src: https://github.com/florianutz/Ubuntu1804-CIS.git
 ```
 
-Based on [CIS Ubuntu Benchmark v1.0.0 - 08-13-2018 ](https://community.cisecurity.org/collab/public/index.php).
+Based on [CIS Ubuntu Benchmark v2.0.1 - 01-03-2020 ](https://www.cisecurity.org/cis-benchmarks/).
 
 This repo originated from work done by [MindPointGroup](https://github.com/MindPointGroup/RHEL7-CIS)
 
@@ -110,9 +110,6 @@ ubuntu1804cis_aide_cron:
   aide_weekday: '*'  
 ```
 
-##### SELinux policy
-`ubuntu1804cis_selinux_pol: targeted`
-
 
 ##### Set to 'true' if X Windows is needed in your environment
 `ubuntu1804cis_xwindows_required: no`
@@ -141,11 +138,17 @@ ubuntu1804cis_time_synchronization_servers:
     config: "minpoll 8"
   - uri: "3.pool.ntp.org"
     config: "minpoll 8"
+
+```
+##### - name: "SCORED | 1.1.5 | PATCH | Ensure noexec option set on /tmp partition"
+It is not implemented, noexec for /tmp will disrupt apt. /tmp contains executable scripts during package installation
+```
+
 ```  
-##### 1.4.3 | PATCH | Ensure authentication required for single user mode
+##### 1.5.3 | PATCH | Ensure authentication required for single user mode
 It is disabled by default as it is setting random password for root. To enable it set:
 ```yaml
-ubuntu1804cis_rule_1_4_3: true
+ubuntu1804cis_rule_1_5_3: true
 ```
 To use other than random password:
 ```yaml

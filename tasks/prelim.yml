@@ -60,6 +60,8 @@
     name: "{{ auditd_package[ansible_os_family] }}"
     state: present
     install_recommends: false
+  when:
+      - not ubuntu1804cis_auditd_disable
 
 - name: "PRELIM | Section 5.1 | Configure cron"
   apt:
@@ -119,6 +121,15 @@
   args:
       executable: /bin/bash
   register: chronyd_service_status
+  changed_when: false
+  check_mode: false
+
+- name: "PRELIM | Check for systemd-timesyncd service"
+  shell: "set -o pipefail;
+      systemctl show systemd-timesyncd | grep LoadState | cut -d = -f 2"
+  args:
+      executable: /bin/bash
+  register: systemd_timesyncd_service_status
   changed_when: false
   check_mode: false
 
@@ -196,7 +207,7 @@
 
 - name: "PRELIM | Check for httpd service"
   shell: "set -o pipefail;
-      systemctl show httpd | grep LoadState | cut -d = -f 2"
+      systemctl show apache2 | grep LoadState | cut -d = -f 2"
   args:
       executable: /bin/bash
   register: httpd_service_status
@@ -214,7 +225,7 @@
 
 - name: "PRELIM | Check for smb service"
   shell: "set -o pipefail;
-      systemctl show smb | grep LoadState | cut -d = -f 2"
+      systemctl show smbd | grep LoadState | cut -d = -f 2"
   args:
       executable: /bin/bash
   register: smb_service_status
@@ -241,7 +252,7 @@
 
 - name: "PRELIM | Check for ypserv service"
   shell: "set -o pipefail;
-      systemctl show ypserv | grep LoadState | cut -d = -f 2"
+      systemctl show nis | grep LoadState | cut -d = -f 2"
   args:
       executable: /bin/bash
   register: ypserv_service_status
@@ -277,7 +288,7 @@
 
 - name: "PRELIM | Check for telnet service"
   shell: "set -o pipefail;
-      systemctl show telnet | grep LoadState | cut -d = -f 2"
+      systemctl show telnetd | grep LoadState | cut -d = -f 2"
   args:
       executable: /bin/bash
   register: telnet_service_status
@@ -286,7 +297,7 @@
 
 - name: "PRELIM | Check for tftp service"
   shell: "set -o pipefail;
-      systemctl show tftp | grep LoadState | cut -d = -f 2"
+      systemctl show tftpd-hpa | grep LoadState | cut -d = -f 2"
   args:
       executable: /bin/bash
   register: tftp_service_status
@@ -320,10 +331,20 @@
   changed_when: false
   check_mode: false
 
-- name: "PRELIM | Check the grub configuration"
+- name: "PRELIM | Check the grub.cfg configuration"
   stat:
     path: /boot/grub/grub.cfg
   register: grub_cfg
+
+- name: "PRELIM | Check the grub.conf configuration"
+  stat:
+    path: /boot/grub/grub.conf
+  register: grub_conf
+
+- name: "PRELIM | Check the menu.lst configuration"
+  stat:
+    path: "/boot/grub/menu.lst"
+  register: menu_lst
 
 - name: "PRELIM | Check that system accounts are non-login #1"
   shell: >
@@ -347,4 +368,19 @@
       executable: /bin/bash
   register: system_accounts_non_login_2
   changed_when: false
+  check_mode: false
+
+- name: "PRELIM | Check that users last password change date are in the future"
+  shell: |
+      set -o pipefail;
+      awk -F: '{print $1}' /etc/shadow | while read -r usr
+      do
+        if [[ $(date --date="$(chage --list "$usr" | grep '^Last password change' | cut -d: -f2)" +%s) > $(date +%s) ]];then
+          echo "$usr"
+        fi
+      done
+  args:
+      executable: /bin/bash
+  register: users_password_change_date_in_future
+  changed_when: False
   check_mode: false
